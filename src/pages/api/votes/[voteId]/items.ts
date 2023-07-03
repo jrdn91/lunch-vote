@@ -1,6 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import getUserRankingForVoteId from "@/db/items/getUserRankingForVoteId";
 import listItemsByVoteId from "@/db/items/listItemsByVoteId";
 import { getAuth } from "@clerk/nextjs/server";
+import { orderBy } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -18,8 +20,13 @@ export default async function handler(
   }
   if (req.method === "GET") {
     const items = await listItemsByVoteId(voteId as string);
+    const userRankedItems = await getUserRankingForVoteId(
+      voteId as string,
+      userId
+    );
     return res.status(200).json({
-      items,
+      items:
+        userRankedItems.length > 0 ? orderBy(userRankedItems, "order") : items,
     });
   }
   return res
