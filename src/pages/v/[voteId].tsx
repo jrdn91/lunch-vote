@@ -2,6 +2,7 @@ import Page from "@/components/Page";
 import { prisma } from "@/db";
 import listVotesByUserId from "@/db/votes/listVotesByUserId";
 import useListItems from "@/hooks/api/items/useListItems";
+import useGetVote from "@/hooks/api/votes/useGetVote";
 import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import {
   DndContext,
@@ -40,7 +41,11 @@ import { forwardRef, useState } from "react";
 const Item = forwardRef<never, { id: string; order: number }>(
   ({ id, order, ...props }, ref) => {
     return (
-      <Card {...props} ref={ref} sx={{ width: 400 }}>
+      <Card
+        {...props}
+        ref={ref}
+        sx={{ width: 400, backgroundColor: "highlight", opacity: 0.4 }}
+      >
         <Group>
           <Avatar color="orange">{order}</Avatar>
           {id}
@@ -70,7 +75,7 @@ function SortableItem({
   };
 
   return (
-    <Box sx={{ padding: 4 }}>
+    <Box sx={{ padding: 4, cursor: "grab" }}>
       <Card
         ref={setNodeRef}
         style={style}
@@ -78,8 +83,10 @@ function SortableItem({
         {...listeners}
         sx={{
           width: 400,
-          opacity: active ? 0.5 : 1,
-          backgroundColor: active ? "cyan" : "white",
+          backgroundColor: "white",
+          ":hover": {
+            backgroundColor: "Highlight",
+          },
         }}
       >
         <Group>
@@ -99,6 +106,8 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
   const router = useRouter();
 
   const [items, setItems] = useState<string[]>([]);
+
+  const { data: vote } = useGetVote(router.query.voteId as string);
 
   useListItems(router.query.voteId as string, {
     onSuccess(data) {
@@ -130,7 +139,8 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
           height: "100%",
         }}
       >
-        <Title order={2}>Hackathon Pizza Party</Title>
+        {!vote && <Skeleton height={24} radius="xl" width={120} />}
+        {vote && <Title order={2}>{vote?.name}</Title>}
         <Box>
           {items.length === 0 && (
             <Stack>
