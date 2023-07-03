@@ -1,20 +1,21 @@
-import "@/styles/globals.css";
-import type { AppProps } from "next/app";
-import { MantineProvider } from "@mantine/core";
 import { emotionCache } from "@/emotion-cache";
+import "@/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import {
   Hydrate,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { useState } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Notifications } from "@mantine/notifications";
+import type { AppProps } from "next/app";
+import { useEffect, useState } from "react";
 
-import { Rubik } from "next/font/google";
-import { NavigationProgress } from "@mantine/nprogress";
 import { RouterTransition } from "@/components/RouterTransition";
+import { NavigationProgress } from "@mantine/nprogress";
+import { Rubik } from "next/font/google";
+import PushNotifications from "@/components/PushNotifications";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -22,6 +23,14 @@ const rubik = Rubik({
 
 export default function App({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(() => new QueryClient());
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js")
+        .then((registration) => console.log("scope is: ", registration.scope));
+    }
+  }, []);
 
   return (
     <main className={rubik.className}>
@@ -40,6 +49,7 @@ export default function App({ Component, pageProps }: AppProps) {
               <RouterTransition />
               <Component {...pageProps} />
               <Notifications />
+              <PushNotifications />
             </MantineProvider>
           </ClerkProvider>
         </Hydrate>

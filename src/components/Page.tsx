@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import { UserButton } from "@clerk/nextjs";
 import { AppShell, Group, Header, Title } from "@mantine/core";
 import { Vote } from "@prisma/client";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface PageProps {
   children: ReactNode;
