@@ -25,9 +25,11 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Avatar,
   Box,
+  Button,
   Card,
   Flex,
   Group,
+  SimpleGrid,
   Skeleton,
   Stack,
   Title,
@@ -75,7 +77,7 @@ function SortableItem({
   };
 
   return (
-    <Box sx={{ padding: 4, cursor: "grab" }}>
+    <Box sx={{ marginBottom: 16, cursor: "grab" }}>
       <Card
         ref={setNodeRef}
         style={style}
@@ -106,10 +108,11 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
   const router = useRouter();
 
   const [items, setItems] = useState<string[]>([]);
+  const [orderChanged, setOrderChanged] = useState<boolean>(false);
 
   const { data: vote } = useGetVote(router.query.voteId as string);
 
-  useListItems(router.query.voteId as string, {
+  const listItems = useListItems(router.query.voteId as string, {
     onSuccess(data) {
       setItems(data.map((item) => item.name));
     },
@@ -125,6 +128,11 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const activeIndex = activeId ? getIndex(activeId) : -1;
+
+  const resetRankings = () => {
+    setItems(() => listItems.data.map((item) => item.name));
+    setOrderChanged(false);
+  };
 
   return (
     <Page initialVotes={votes}>
@@ -180,48 +188,63 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
             </Stack>
           )}
           {items.length > 0 && (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={({ over }) => {
-                setActiveId(null);
-                if (over) {
-                  const overIndex = getIndex(over.id);
-                  if (activeIndex !== overIndex) {
-                    setItems((items) =>
-                      arrayMove(items, activeIndex, overIndex)
-                    );
+            <>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={({ over }) => {
+                  setActiveId(null);
+                  if (over) {
+                    const overIndex = getIndex(over.id);
+                    if (activeIndex !== overIndex) {
+                      setItems((items) =>
+                        arrayMove(items, activeIndex, overIndex)
+                      );
+                      setOrderChanged(true);
+                    }
                   }
-                }
-              }}
-              onDragStart={(event) => {
-                const { active } = event;
+                }}
+                onDragStart={(event) => {
+                  const { active } = event;
 
-                setActiveId(active.id);
-              }}
-            >
-              <SortableContext
-                items={items}
-                strategy={verticalListSortingStrategy}
+                  setActiveId(active.id);
+                }}
               >
-                {items.map((id, idx) => (
-                  <SortableItem
-                    key={id}
-                    id={id}
-                    order={idx + 1}
-                    active={activeId === id}
-                  />
-                ))}
-              </SortableContext>
-              <DragOverlay>
-                {activeId ? (
-                  <Item
-                    id={activeId as string}
-                    order={items.indexOf(activeId as string) + 1}
-                  />
-                ) : null}
-              </DragOverlay>
-            </DndContext>
+                <SortableContext
+                  items={items}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {items.map((id, idx) => (
+                    <SortableItem
+                      key={id}
+                      id={id}
+                      order={idx + 1}
+                      active={activeId === id}
+                    />
+                  ))}
+                </SortableContext>
+                <DragOverlay>
+                  {activeId ? (
+                    <Item
+                      id={activeId as string}
+                      order={items.indexOf(activeId as string) + 1}
+                    />
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+              <SimpleGrid cols={2}>
+                <Button
+                  variant="default"
+                  disabled={!orderChanged}
+                  onClick={resetRankings}
+                >
+                  Reset
+                </Button>
+                <Button color="primary" disabled={!orderChanged}>
+                  Submit
+                </Button>
+              </SimpleGrid>
+            </>
           )}
         </Box>
       </Flex>
