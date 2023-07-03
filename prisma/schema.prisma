@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vote {
+  id              String            @id @default(uuid())
+  name            String
+  created         DateTime          @default(now())
+  updated         DateTime          @default(now()) @updatedAt
+  Items           Item[]
+  UserVoteRanking UserVoteRanking[]
+  Users           UserVote[]
+
+  @@map("votes")
+}
+
+model UserVote {
+  voteId String
+  Vote   Vote   @relation(fields: [voteId], references: [id])
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  @@unique([voteId, userId])
+}
+
+model Item {
+  id              Int               @id @default(autoincrement())
+  name            String
+  Vote            Vote?             @relation(fields: [voteId], references: [id])
+  voteId          String?
+  UserVoteRanking UserVoteRanking[]
+
+  @@map("items")
+}
+
+model User {
+  id              String            @id
+  name            String
+  created         DateTime          @default(now())
+  updated         DateTime          @default(now()) @updatedAt
+  UserVoteRanking UserVoteRanking[]
+  Votes           UserVote[]
+
+  @@map("users")
+}
+
+model UserVoteRanking {
+  order  Int
+  voteId String
+  userId String
+  itemId Int
+
+  Vote Vote @relation(fields: [voteId], references: [id])
+  User User @relation(fields: [userId], references: [id])
+  Item Item @relation(fields: [itemId], references: [id])
+
+  @@unique([voteId, userId, itemId])
+  @@map("user_vote_rankings")
+}

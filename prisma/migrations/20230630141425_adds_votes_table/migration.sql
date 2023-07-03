@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "Vote" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Vote_pkey" PRIMARY KEY ("id")
+);
