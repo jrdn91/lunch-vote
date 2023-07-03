@@ -23,6 +23,7 @@
     "@mantine/hooks": "^6.0.15",
     "@mantine/next": "^6.0.15",
     "@mantine/notifications": "^6.0.15",
+    "@mantine/nprogress": "^6.0.15",
     "@passageidentity/passage-elements": "^1.9.3",
     "@passageidentity/passage-node": "^2.3.2",
     "@prisma/client": "4.16.2",

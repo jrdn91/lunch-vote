@@ -13,6 +13,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Notifications } from "@mantine/notifications";
 
 import { Rubik } from "next/font/google";
+import { NavigationProgress } from "@mantine/nprogress";
+import { RouterTransition } from "@/components/RouterTransition";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -34,6 +36,8 @@ export default function App({ Component, pageProps }: AppProps) {
                 fontFamily: "Rubik, sans-serif",
               }}
             >
+              <NavigationProgress />
+              <RouterTransition />
               <Component {...pageProps} />
               <Notifications />
             </MantineProvider>

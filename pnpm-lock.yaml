@@ -13,6 +13,7 @@ specifiers:
   '@mantine/hooks': ^6.0.15
   '@mantine/next': ^6.0.15
   '@mantine/notifications': ^6.0.15
+  '@mantine/nprogress': ^6.0.15
   '@passageidentity/passage-elements': ^1.9.3
   '@passageidentity/passage-node': ^2.3.2
   '@prisma/client': 4.16.2
@@ -48,6 +49,7 @@ dependencies:
   '@mantine/hooks': 6.0.15_react@18.2.0
   '@mantine/next': 6.0.15_yepbbkytyieaqu6r73pso3dhsy
   '@mantine/notifications': 6.0.15_uj7uj5zw2dr65cfgacjzlvweky
+  '@mantine/nprogress': 6.0.15_uj7uj5zw2dr65cfgacjzlvweky
   '@passageidentity/passage-elements': 1.9.3
   '@passageidentity/passage-node': 2.3.2
   '@prisma/client': 4.16.2_prisma@4.16.2
@@ -571,6 +573,21 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-transition-group: 4.4.2_biqbaboplfbrettd7655fr4n2y
+    dev: false
+
+  /@mantine/nprogress/6.0.15_uj7uj5zw2dr65cfgacjzlvweky:
+    resolution: {integrity: sha512-SHmRq3t0iy1FsZ0E4vdlR/EHsQHeo9dt3920KJqvTUyJLIk8DY8cIDK36qav56V49Ocef4uIEUR+G/foTa2EgQ==}
+    peerDependencies:
+      '@mantine/core': 6.0.15
+      '@mantine/hooks': 6.0.15
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@mantine/core': 6.0.15_nrsdfr5x3due2myo76pnvn23oq
+      '@mantine/hooks': 6.0.15_react@18.2.0
+      '@mantine/utils': 6.0.15_react@18.2.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /@mantine/ssr/6.0.15_cvn44t664qknyqcemkzlarhdby:
