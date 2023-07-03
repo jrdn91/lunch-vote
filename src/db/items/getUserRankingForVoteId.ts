@@ -3,13 +3,15 @@ import { prisma } from "@/db";
 async function getUserRankingForVoteId(voteId: string, userId: string) {
   const ranking = await prisma.userVoteRanking.findMany({
     select: {
-      order: true,
       Item: {
         select: {
           id: true,
           name: true,
         },
       },
+    },
+    orderBy: {
+      order: "asc",
     },
     where: {
       voteId,
@@ -18,7 +20,6 @@ async function getUserRankingForVoteId(voteId: string, userId: string) {
   });
   return ranking.map((rank) => ({
     ...rank.Item,
-    order: rank.order,
   }));
 }
 

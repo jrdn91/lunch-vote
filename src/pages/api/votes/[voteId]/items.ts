@@ -16,7 +16,7 @@ export default async function handler(
     return res.status(401).send(`You must be authenticated to call this API`);
   }
   if (!voteId) {
-    return res.status(400).send(`You must be provide a voteId in teh URL`);
+    return res.status(400).send(`You must provide a voteId in the URL`);
   }
   if (req.method === "GET") {
     const items = await listItemsByVoteId(voteId as string);
@@ -25,8 +25,7 @@ export default async function handler(
       userId
     );
     return res.status(200).json({
-      items:
-        userRankedItems.length > 0 ? orderBy(userRankedItems, "order") : items,
+      items: userRankedItems.length > 0 ? userRankedItems : items,
     });
   }
   return res

@@ -1,7 +1,8 @@
 import Page from "@/components/Page";
 import { prisma } from "@/db";
 import listVotesByUserId from "@/db/votes/listVotesByUserId";
-import useListItems from "@/hooks/api/items/useListItems";
+import useListItems, { ItemsFromApi } from "@/hooks/api/items/useListItems";
+import useUpdateRankings from "@/hooks/api/items/useUpdateRankings";
 import useGetVote from "@/hooks/api/votes/useGetVote";
 import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import {
@@ -38,10 +39,10 @@ import { Vote } from "@prisma/client";
 import dayjs from "dayjs";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
-const Item = forwardRef<never, { id: string; order: number }>(
-  ({ id, order, ...props }, ref) => {
+const Item = forwardRef<never, { name: string; order: number }>(
+  ({ name, order, ...props }, ref) => {
     return (
       <Card
         {...props}
@@ -50,7 +51,7 @@ const Item = forwardRef<never, { id: string; order: number }>(
       >
         <Group>
           <Avatar color="orange">{order}</Avatar>
-          {id}
+          {name}
         </Group>
       </Card>
     );
@@ -59,17 +60,17 @@ const Item = forwardRef<never, { id: string; order: number }>(
 
 Item.displayName = "Item";
 function SortableItem({
-  id,
+  item,
   active,
   order,
   ...props
 }: {
-  id: string;
+  item: ItemType;
   active: boolean;
   order: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: id });
+    useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -93,7 +94,7 @@ function SortableItem({
       >
         <Group>
           <Avatar color="orange">{order}</Avatar>
-          {id}
+          {item.name}
         </Group>
       </Card>
     </Box>
@@ -104,17 +105,25 @@ interface VotePageProps {
   votes: Vote[];
 }
 
+type ItemType = ItemsFromApi[number];
+
 const V: NextPage<VotePageProps> = ({ votes }) => {
   const router = useRouter();
 
-  const [items, setItems] = useState<string[]>([]);
+  const [items, setItems] = useState<ItemsFromApi>([]);
   const [orderChanged, setOrderChanged] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (router.query.voteId) {
+      setOrderChanged(false);
+    }
+  }, [router.query.voteId]);
 
   const { data: vote } = useGetVote(router.query.voteId as string);
 
   const listItems = useListItems(router.query.voteId as string, {
     onSuccess(data) {
-      setItems(data.map((item) => item.name));
+      setItems(data);
     },
   });
   const sensors = useSensors(
@@ -124,14 +133,28 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
     })
   );
 
-  const getIndex = (id: UniqueIdentifier) => items.indexOf(id as string);
+  const getIndex = (item?: ItemType) =>
+    items.findIndex((i) => i.id === item?.id);
 
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const activeIndex = activeId ? getIndex(activeId) : -1;
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const activeItem = items.find((i) => i.id === activeId);
+  const activeIndex = activeItem ? getIndex(activeItem) : -1;
 
   const resetRankings = () => {
-    setItems(() => listItems.data.map((item) => item.name));
+    setItems(() => listItems.data);
     setOrderChanged(false);
+  };
+
+  const updateRankings = useUpdateRankings(router.query.voteId as string);
+
+  const submitRankings = () => {
+    updateRankings
+      .mutateAsync({
+        itemIds: items.map((i) => i.id),
+      })
+      .then(() => {
+        setOrderChanged(false);
+      });
   };
 
   return (
@@ -195,7 +218,9 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                 onDragEnd={({ over }) => {
                   setActiveId(null);
                   if (over) {
-                    const overIndex = getIndex(over.id);
+                    console.log(over);
+                    console.log(activeItem);
+                    const overIndex = items.findIndex((i) => i.id === over.id);
                     if (activeIndex !== overIndex) {
                       setItems((items) =>
                         arrayMove(items, activeIndex, overIndex)
@@ -207,27 +232,30 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                 onDragStart={(event) => {
                   const { active } = event;
 
-                  setActiveId(active.id);
+                  setActiveId(active.id as number);
                 }}
               >
                 <SortableContext
                   items={items}
                   strategy={verticalListSortingStrategy}
                 >
-                  {items.map((id, idx) => (
+                  {items.map((item, idx) => (
                     <SortableItem
-                      key={id}
-                      id={id}
+                      key={item.id}
+                      item={item}
                       order={idx + 1}
-                      active={activeId === id}
+                      active={activeItem?.id === item.id}
                     />
                   ))}
                 </SortableContext>
                 <DragOverlay>
-                  {activeId ? (
+                  {activeItem ? (
                     <Item
-                      id={activeId as string}
-                      order={items.indexOf(activeId as string) + 1}
+                      name={activeItem?.name || ""}
+                      order={
+                        items.findIndex((item) => item.id === activeItem?.id) +
+                        1
+                      }
                     />
                   ) : null}
                 </DragOverlay>
@@ -235,12 +263,17 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
               <SimpleGrid cols={2}>
                 <Button
                   variant="default"
-                  disabled={!orderChanged}
+                  disabled={!orderChanged || updateRankings.isLoading}
                   onClick={resetRankings}
                 >
                   Reset
                 </Button>
-                <Button color="primary" disabled={!orderChanged}>
+                <Button
+                  color="primary"
+                  disabled={!orderChanged}
+                  onClick={submitRankings}
+                  loading={updateRankings.isLoading}
+                >
                   Submit
                 </Button>
               </SimpleGrid>

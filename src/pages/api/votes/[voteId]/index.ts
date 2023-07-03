@@ -15,7 +15,7 @@ export default async function handler(
   }
 
   if (!voteId) {
-    return res.status(400).send(`You must be provide a voteId in teh URL`);
+    return res.status(400).send(`You must provide a voteId in the URL`);
   }
 
   if (req.method === "GET") {
