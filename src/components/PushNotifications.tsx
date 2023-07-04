@@ -3,7 +3,7 @@ import "firebase/messaging";
 import { firebaseCloudMessaging } from "../utils/firebase";
 // import { ToastContainer, toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { getApp } from "firebase/app";
 import { MessagePayload, getMessaging, onMessage } from "firebase/messaging";
 import { notifications } from "@mantine/notifications";
@@ -13,6 +13,8 @@ import { Info } from "react-feather";
 function PushNotifications() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  console.log(user);
   const registered = useRef<boolean>(false);
   useEffect(() => {
     if (!isSignedIn) return;

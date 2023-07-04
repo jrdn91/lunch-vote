@@ -2,6 +2,7 @@
 import { prisma } from "@/db";
 import listVotesByUserId from "@/db/votes/listVotesByUserId";
 import { NewVote } from "@/hooks/api/votes/useCreateVote";
+import { users } from "@clerk/clerk-sdk-node";
 import { getAuth } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -36,6 +37,19 @@ export default async function handler(
   }
   if (req.method === "POST") {
     const body = req.body as NewVote;
+    // const invitedUserIds = await prisma.user.findMany({
+    //   select: {
+    //     id: true,
+    //   },
+    //   where: {
+    //     id: {
+    //       in: body.invites,
+    //     },
+    //   },
+    // });
+    const invitedUsers = await users.getUserList({
+      emailAddress: body.invites,
+    });
     const newVote = await prisma.vote.create({
       data: {
         name: body.name,
@@ -46,15 +60,22 @@ export default async function handler(
             })),
           },
         },
+        creatorUserId: userId,
+        Users: {
+          createMany: {
+            data: invitedUsers.map((user) => ({
+              userId: user.id,
+            })),
+          },
+        },
       },
     });
-
-    await prisma.userVote.create({
-      data: {
-        userId: userId,
-        voteId: newVote.id,
-      },
-    });
+    // await prisma.userVote.create({
+    //   data: {
+    //     userId: userId,
+    //     voteId: newVote.id,
+    //   },
+    // });
     return res.status(201).json({
       vote: newVote,
     });

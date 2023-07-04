@@ -8,19 +8,21 @@ import {
   Flex,
   Group,
   Modal,
+  MultiSelect,
   Stack,
   Stepper,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { useDisclosure } from "@mantine/hooks";
+import { useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/router";
-import React, { ReactNode, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { Check, Plus, X } from "react-feather";
 import { z } from "zod";
 import { produce } from "immer";
+import useSearchUsers from "@/hooks/api/users/useSearchUsers";
 
 interface CreateVoteModalProps {
   children: (props: { openModal: () => void }) => ReactNode;
@@ -37,7 +39,7 @@ const itemSchema = z.object({
 type FormValues = z.infer<typeof nameSchema>;
 
 const CreateVoteModal = ({ children }: CreateVoteModalProps) => {
-  const newVoteData = useRef<NewVote>({ name: "", items: [] });
+  const newVoteData = useRef<NewVote>({ name: "", items: [], invites: [] });
 
   const [opened, handlers] = useDisclosure(false);
 
@@ -86,7 +88,19 @@ const CreateVoteModal = ({ children }: CreateVoteModalProps) => {
     itemForm.reset();
   };
 
+  const resetModal = () => {
+    setActive(0);
+    setNewItems([]);
+    nameForm.reset();
+    itemForm.reset();
+    newVoteData.current = { name: "", items: [], invites: [] };
+  };
+
   const submitInviteStep = async () => {
+    newVoteData.current = {
+      ...newVoteData.current,
+      invites: selectedUsers,
+    };
     nextStep();
     try {
       const response = await createVote.mutateAsync(newVoteData.current);
@@ -99,6 +113,8 @@ const CreateVoteModal = ({ children }: CreateVoteModalProps) => {
         message: "New vote was created successfully",
       });
       router.push(`/v/${response.data.vote.id}`);
+      handlers.close();
+      resetModal();
     } catch (e) {
       notifications.show({
         icon: (
@@ -111,6 +127,13 @@ const CreateVoteModal = ({ children }: CreateVoteModalProps) => {
       prevStep();
     }
   };
+
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue] = useDebouncedValue(searchValue, 400);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  const { data: inviteOptionsData } = useSearchUsers(debouncedSearchValue);
+  const multiSelectInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -183,7 +206,33 @@ const CreateVoteModal = ({ children }: CreateVoteModalProps) => {
             </Group>
           </Stepper.Step>
           <Stepper.Step label="Invite">
-            <Text c="dimmed">Coming Soon...</Text>
+            <Text c="dimmed">
+              <MultiSelect
+                ref={multiSelectInputRef}
+                data={(
+                  inviteOptionsData
+                    ?.map(
+                      (d) =>
+                        d.emailAddresses.find(
+                          (e) => e.id === d.primaryEmailAddressId
+                        )?.emailAddress || ""
+                    )
+                    .filter((string) => string.length > 0) || []
+                ).concat(selectedUsers)}
+                label="Invite someone to the vote"
+                placeholder="Start typing someones email address  "
+                searchable
+                disableSelectedItemFiltering
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                nothingFound="Nothing found"
+                value={selectedUsers}
+                onChange={(value) => {
+                  setSelectedUsers(value);
+                  multiSelectInputRef.current?.focus();
+                }}
+              />
+            </Text>
             <Group position="right" mt="md">
               <Button onClick={submitInviteStep}>Submit</Button>
             </Group>

@@ -8,6 +8,9 @@ const queryKeys = createQueryKeyStore({
   items: {
     list: (voteId: string) => [voteId],
   },
+  users: {
+    search: (searchTerm: string) => [searchTerm],
+  },
 });
 
 export default queryKeys;

@@ -1,15 +1,20 @@
 import { prisma } from "@/db";
 
 async function listVotesByUserId(userId: string) {
-  const votes = await prisma.userVote.findMany({
-    select: {
-      Vote: true,
+  const createdVotes = await prisma.vote.findMany({
+    where: {
+      creatorUserId: userId,
     },
+  });
+  const invitedVotes = await prisma.userVote.findMany({
     where: {
       userId,
     },
+    select: {
+      Vote: true,
+    },
   });
-  return votes.map((v) => v.Vote);
+  return createdVotes.concat(invitedVotes.map(({ Vote }) => Vote));
 }
 
 export default listVotesByUserId;

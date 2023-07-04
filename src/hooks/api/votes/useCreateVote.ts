@@ -6,6 +6,7 @@ import axios from "axios";
 export type NewVote = {
   name: string;
   items: string[];
+  invites: string[];
 };
 
 type Response = {

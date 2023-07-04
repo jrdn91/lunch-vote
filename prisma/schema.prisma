@@ -18,6 +18,8 @@ model Vote {
   Items           Item[]
   UserVoteRanking UserVoteRanking[]
   Users           UserVote[]
+  creatorUserId   String            @map("creator_user_id")
+  Creator         User              @relation(fields: [creatorUserId], references: [id])
 
   @@map("votes")
 }
@@ -48,6 +50,7 @@ model User {
   updated         DateTime          @default(now()) @updatedAt
   UserVoteRanking UserVoteRanking[]
   Votes           UserVote[]
+  CreatedVotes    Vote[]
 
   @@map("users")
 }
