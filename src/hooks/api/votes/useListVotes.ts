@@ -10,10 +10,7 @@ type Response = {
 function useListVotes(props?: { initialData?: Vote[] }) {
   return useQuery(
     queryKeys.votes.list.queryKey,
-    () =>
-      axios
-        .get<Response>(`${process.env.NEXT_PUBLIC_API_URL}/api/votes`)
-        .then((res) => res.data.votes),
+    () => axios.get<Response>(`/api/votes`).then((res) => res.data.votes),
     {
       initialData: props?.initialData,
     }

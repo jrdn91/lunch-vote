@@ -11,9 +11,7 @@ function useGetVote(voteId: string, props?: { initialData?: Vote }) {
   return useQuery(
     queryKeys.votes.detail(voteId).queryKey,
     () =>
-      axios
-        .get<Response>(`${process.env.NEXT_PUBLIC_API_URL}/api/votes/${voteId}`)
-        .then((res) => res.data.vote),
+      axios.get<Response>(`/api/votes/${voteId}`).then((res) => res.data.vote),
     {
       initialData: props?.initialData,
     }

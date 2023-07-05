@@ -12,7 +12,7 @@ function useSearchUsers(searchTerm: string) {
     queryKeys.users.search(searchTerm).queryKey,
     () =>
       axios
-        .get<Response>(`${process.env.NEXT_PUBLIC_API_URL}/api/users/search`, {
+        .get<Response>(`/api/users/search`, {
           params: {
             search: searchTerm,
           },

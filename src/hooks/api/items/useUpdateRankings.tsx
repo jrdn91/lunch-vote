@@ -16,11 +16,7 @@ type Response = {
 function useUpdateRankings(voteId: string) {
   const queryClient = useQueryClient();
   return useMutation(
-    (data: RankBody) =>
-      axios.post<Response>(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/votes/${voteId}/rank`,
-        data
-      ),
+    (data: RankBody) => axios.post<Response>(`/api/votes/${voteId}/rank`, data),
     {
       onSuccess(data) {
         queryClient.setQueryData(

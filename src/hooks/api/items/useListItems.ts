@@ -21,9 +21,7 @@ function useListItems(
     queryKeys.items.list(voteId).queryKey,
     () =>
       axios
-        .get<Response>(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/votes/${voteId}/items`
-        )
+        .get<Response>(`/api/votes/${voteId}/items`)
         .then((res) => res.data.items),
     {
       initialData: props?.initialData,

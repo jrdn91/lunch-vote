@@ -16,11 +16,7 @@ type Response = {
 function useCreateVote() {
   const queryClient = useQueryClient();
   return useMutation(
-    (data: NewVote) =>
-      axios.post<Response>(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/votes`,
-        data
-      ),
+    (data: NewVote) => axios.post<Response>(`/api/votes`, data),
     {
       onSuccess(data) {
         queryClient.setQueryData(queryKeys.votes.list.queryKey, (oldData) => {
