@@ -19,7 +19,7 @@ model Vote {
   UserVoteRanking UserVoteRanking[]
   Users           UserVote[]
   creatorUserId   String            @map("creator_user_id")
-  Creator         User              @relation(fields: [creatorUserId], references: [id])
+  open            Boolean           @default(true)
 
   @@map("votes")
 }
@@ -28,7 +28,6 @@ model UserVote {
   voteId String
   Vote   Vote   @relation(fields: [voteId], references: [id])
   userId String
-  User   User   @relation(fields: [userId], references: [id])
 
   @@unique([voteId, userId])
 }
@@ -44,13 +43,10 @@ model Item {
 }
 
 model User {
-  id              String            @id
-  name            String
-  created         DateTime          @default(now())
-  updated         DateTime          @default(now()) @updatedAt
-  UserVoteRanking UserVoteRanking[]
-  Votes           UserVote[]
-  CreatedVotes    Vote[]
+  id      String   @id
+  name    String
+  created DateTime @default(now())
+  updated DateTime @default(now()) @updatedAt
 
   @@map("users")
 }
@@ -62,7 +58,6 @@ model UserVoteRanking {
   itemId Int
 
   Vote Vote @relation(fields: [voteId], references: [id])
-  User User @relation(fields: [userId], references: [id])
   Item Item @relation(fields: [itemId], references: [id])
 
   @@unique([voteId, userId, itemId])

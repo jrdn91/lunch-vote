@@ -1,4 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import { prisma } from "@/db";
 import getVoteById from "@/db/votes/getVoteById";
 import { getAuth } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -18,11 +19,25 @@ export default async function handler(
     return res.status(400).send(`You must provide a voteId in the URL`);
   }
 
-  if (req.method === "GET") {
-    const vote = await getVoteById(voteId as string);
-    console.log("vote", vote);
-    return res.status(200).json({
-      vote,
+  const ownsVote = (await getVoteById(voteId as string)) !== null;
+
+  if (!ownsVote) {
+    return res
+      .status(403)
+      .send(`You must be the creator of the vote to open it`);
+  }
+
+  if (req.method === "POST") {
+    const updatedVote = await prisma.vote.update({
+      data: {
+        open: true,
+      },
+      where: {
+        id: voteId as string,
+      },
+    });
+    return res.status(200).send({
+      vote: updatedVote,
     });
   }
   return res

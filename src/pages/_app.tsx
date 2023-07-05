@@ -1,7 +1,7 @@
 import { emotionCache } from "@/emotion-cache";
 import "@/styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, Modal } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import {
   Hydrate,
@@ -16,6 +16,7 @@ import { RouterTransition } from "@/components/RouterTransition";
 import { NavigationProgress } from "@mantine/nprogress";
 import { Rubik } from "next/font/google";
 import PushNotifications from "@/components/PushNotifications";
+import { ModalsProvider } from "@mantine/modals";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -43,13 +44,26 @@ export default function App({ Component, pageProps }: AppProps) {
               emotionCache={emotionCache}
               theme={{
                 fontFamily: "Rubik, sans-serif",
+                components: {
+                  Card: {
+                    variants: {
+                      outlined: (theme) => ({
+                        root: {
+                          border: `1px solid ${theme.colors.gray[5]}`,
+                        },
+                      }),
+                    },
+                  },
+                },
               }}
             >
-              <NavigationProgress />
-              <RouterTransition />
-              <Component {...pageProps} />
-              <Notifications />
-              <PushNotifications />
+              <ModalsProvider>
+                <NavigationProgress />
+                <RouterTransition />
+                <Component {...pageProps} />
+                <Notifications />
+                <PushNotifications />
+              </ModalsProvider>
             </MantineProvider>
           </ClerkProvider>
         </Hydrate>

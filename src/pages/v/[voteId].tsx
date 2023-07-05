@@ -3,7 +3,10 @@ import { prisma } from "@/db";
 import listVotesByUserId from "@/db/votes/listVotesByUserId";
 import useListItems, { ItemsFromApi } from "@/hooks/api/items/useListItems";
 import useUpdateRankings from "@/hooks/api/items/useUpdateRankings";
+import useCloseVote from "@/hooks/api/votes/useCloseVote";
 import useGetVote from "@/hooks/api/votes/useGetVote";
+import useOpenVote from "@/hooks/api/votes/useOpenVote";
+import { useAuth } from "@clerk/nextjs";
 import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 import {
   DndContext,
@@ -33,8 +36,10 @@ import {
   SimpleGrid,
   Skeleton,
   Stack,
+  Text,
   Title,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { Vote } from "@prisma/client";
 import dayjs from "dayjs";
 import { GetServerSideProps, NextPage } from "next";
@@ -61,13 +66,12 @@ const Item = forwardRef<never, { name: string; order: number }>(
 Item.displayName = "Item";
 function SortableItem({
   item,
-  active,
   order,
-  ...props
+  disabled,
 }: {
   item: ItemType;
-  active: boolean;
   order: number;
+  disabled: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id });
@@ -78,7 +82,7 @@ function SortableItem({
   };
 
   return (
-    <Box sx={{ marginBottom: 16, cursor: "grab" }}>
+    <Box sx={{ marginBottom: 16, cursor: !disabled ? "grab" : "default" }}>
       <Card
         ref={setNodeRef}
         style={style}
@@ -88,7 +92,7 @@ function SortableItem({
           width: 400,
           backgroundColor: "white",
           ":hover": {
-            backgroundColor: "Highlight",
+            backgroundColor: !disabled ? "Highlight" : "white",
           },
         }}
       >
@@ -109,6 +113,8 @@ type ItemType = ItemsFromApi[number];
 
 const V: NextPage<VotePageProps> = ({ votes }) => {
   const router = useRouter();
+
+  const { userId } = useAuth();
 
   const [items, setItems] = useState<ItemsFromApi>([]);
   const [orderChanged, setOrderChanged] = useState<boolean>(false);
@@ -157,6 +163,28 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
       });
   };
 
+  const closeVote = useCloseVote(router.query.voteId as string);
+  const openVote = useOpenVote(router.query.voteId as string);
+
+  const handleOpenOrCloseVote = () => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: (
+        <Text size="sm">
+          Are you sure you want to {vote?.open ? "close" : "open"} the vote?
+        </Text>
+      ),
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      onConfirm: () => {
+        if (vote?.open) {
+          closeVote.mutateAsync();
+        } else {
+          openVote.mutateAsync();
+        }
+      },
+    });
+  };
+
   return (
     <Page initialVotes={votes}>
       <Flex
@@ -170,6 +198,20 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
           height: "100%",
         }}
       >
+        {vote?.creatorUserId === userId && (
+          <Card variant="outlined" sx={{ backgroundColor: "transparent" }}>
+            <Group>
+              <Text>Vote is {vote?.open ? "open" : "closed"} for rankings</Text>
+              <Button
+                onClick={handleOpenOrCloseVote}
+                loading={closeVote.isLoading || openVote.isLoading}
+                color={vote?.open ? "red" : "green"}
+              >
+                {vote?.open ? "Close" : "Open"} Vote
+              </Button>
+            </Group>
+          </Card>
+        )}
         {!vote && <Skeleton height={24} radius="xl" width={120} />}
         {vote && <Title order={2}>{vote?.name}</Title>}
         <Box>
@@ -236,6 +278,7 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                 }}
               >
                 <SortableContext
+                  disabled={vote?.open === false}
                   items={items}
                   strategy={verticalListSortingStrategy}
                 >
@@ -244,7 +287,7 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                       key={item.id}
                       item={item}
                       order={idx + 1}
-                      active={activeItem?.id === item.id}
+                      disabled={vote?.open === false}
                     />
                   ))}
                 </SortableContext>

@@ -37,19 +37,10 @@ export default async function handler(
   }
   if (req.method === "POST") {
     const body = req.body as NewVote;
-    // const invitedUserIds = await prisma.user.findMany({
-    //   select: {
-    //     id: true,
-    //   },
-    //   where: {
-    //     id: {
-    //       in: body.invites,
-    //     },
-    //   },
-    // });
     const invitedUsers = await users.getUserList({
       emailAddress: body.invites,
     });
+
     const newVote = await prisma.vote.create({
       data: {
         name: body.name,
@@ -70,12 +61,7 @@ export default async function handler(
         },
       },
     });
-    // await prisma.userVote.create({
-    //   data: {
-    //     userId: userId,
-    //     voteId: newVote.id,
-    //   },
-    // });
+
     return res.status(201).json({
       vote: newVote,
     });
