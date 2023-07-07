@@ -14,7 +14,7 @@ interface HomePageProps {
 
 export default function Home({ votes }: HomePageProps) {
   return (
-    <Page>
+    <Page initialVotes={votes}>
       <Flex
         justify="center"
         align="center"
