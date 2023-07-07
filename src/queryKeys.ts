@@ -5,6 +5,9 @@ const queryKeys = createQueryKeyStore({
     detail: (voteId: string) => [voteId],
     list: null,
   },
+  rankings: {
+    detail: (voteId: string) => [voteId],
+  },
   items: {
     list: (voteId: string) => [voteId],
   },

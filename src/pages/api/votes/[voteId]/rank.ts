@@ -26,14 +26,14 @@ export default async function handler(
   if (!voteId) {
     return res.status(400).send(`You must provide a voteId in the URL`);
   }
-  if (!body) {
-    return res
-      .status(400)
-      .send(
-        `You must provide a body containing 'itemIds: number[]' in the URL`
-      );
-  }
   if (req.method === "POST") {
+    if (!body) {
+      return res
+        .status(400)
+        .send(
+          `You must provide a body containing 'itemIds: number[]' in the URL`
+        );
+    }
     // update or insert user rankings
     const existingUserRankings = await prisma.userVoteRanking.count({
       where: {
@@ -72,6 +72,18 @@ export default async function handler(
       voteId as string,
       userId
     );
+    return res.status(200).json({
+      items: userRankedItems,
+    });
+  }
+  if (req.method === "GET") {
+    // get the rankings for this vote
+    const userRankedItems = await prisma.userVoteRanking.findMany({
+      where: {
+        voteId: voteId as string,
+      },
+    });
+    console.log("userRankedItems", userRankedItems);
     return res.status(200).json({
       items: userRankedItems,
     });

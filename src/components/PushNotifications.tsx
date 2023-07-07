@@ -14,18 +14,15 @@ function PushNotifications() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  console.log(user);
   const registered = useRef<boolean>(false);
   useEffect(() => {
     if (!isSignedIn) return;
     if (registered.current) return;
-    console.log("effect");
     setToken();
 
     // Event listener that listens for the push notification event in the background
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", (event) => {
-        console.log("event", event);
         showNotification(event.data.firebaseMessaging.payload);
       });
     }
@@ -35,7 +32,6 @@ function PushNotifications() {
       try {
         const token = await firebaseCloudMessaging.init();
         if (token) {
-          console.log("token", token);
           getMessage();
         }
       } catch (error) {
@@ -47,7 +43,6 @@ function PushNotifications() {
 
   // Handles the click function on the toast showing push notification
   const handleClickPushNotification = (url: string) => {
-    console.log(url);
     // router.push(url);
   };
 
