@@ -31,32 +31,32 @@ const createVotes = async (prisma: PrismaClient) => {
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOeZSZhOAbYp",
                 itemId: 1,
-                order: 1,
+                order: 0,
               },
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOeZSZhOAbYp",
                 itemId: 2,
-                order: 2,
+                order: 1,
               },
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOeZSZhOAbYp",
                 itemId: 3,
-                order: 3,
-              },
-              {
-                userId: "user_2S4wvxxUfwJ9zMPkOeZSZhklojp",
-                itemId: 1,
-                order: 3,
-              },
-              {
-                userId: "user_2S4wvxxUfwJ9zMPkOeZSZhklojp",
-                itemId: 2,
                 order: 2,
               },
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOeZSZhklojp",
-                itemId: 3,
+                itemId: 1,
+                order: 0,
+              },
+              {
+                userId: "user_2S4wvxxUfwJ9zMPkOeZSZhklojp",
+                itemId: 2,
                 order: 1,
+              },
+              {
+                userId: "user_2S4wvxxUfwJ9zMPkOeZSZhklojp",
+                itemId: 3,
+                order: 2,
               },
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOesk58OAbYp",
@@ -66,42 +66,12 @@ const createVotes = async (prisma: PrismaClient) => {
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOesk58OAbYp",
                 itemId: 2,
-                order: 3,
+                order: 1,
               },
               {
                 userId: "user_2S4wvxxUfwJ9zMPkOesk58OAbYp",
                 itemId: 3,
-                order: 1,
-              },
-              {
-                userId: "user_2S4wsdjjffwJ9zMPkOeZSZhOAbYp",
-                itemId: 1,
-                order: 3,
-              },
-              {
-                userId: "user_2S4wsdjjffwJ9zMPkOeZSZhOAbYp",
-                itemId: 2,
-                order: 2,
-              },
-              {
-                userId: "user_2S4wsdjjffwJ9zMPkOeZSZhOAbYp",
-                itemId: 3,
-                order: 1,
-              },
-              {
-                userId: "user_2S4wvxxUfwJ9zMPkOesdhjgk34bYp",
-                itemId: 1,
-                order: 3,
-              },
-              {
-                userId: "user_2S4wvxxUfwJ9zMPkOesdhjgk34bYp",
-                itemId: 2,
-                order: 1,
-              },
-              {
-                userId: "user_2S4wvxxUfwJ9zMPkOesdhjgk34bYp",
-                itemId: 3,
-                order: 2,
+                order: 0,
               },
             ],
           },

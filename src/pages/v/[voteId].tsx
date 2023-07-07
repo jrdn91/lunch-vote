@@ -5,6 +5,7 @@ import useListItems, { ItemsFromApi } from "@/hooks/api/items/useListItems";
 import useUpdateRankings from "@/hooks/api/items/useUpdateRankings";
 import useCloseVote from "@/hooks/api/votes/useCloseVote";
 import useGetVote from "@/hooks/api/votes/useGetVote";
+import useGetVoteRankings from "@/hooks/api/votes/useGetVoteRankings";
 import useOpenVote from "@/hooks/api/votes/useOpenVote";
 import { useAuth } from "@clerk/nextjs";
 import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
@@ -13,7 +14,6 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  UniqueIdentifier,
   closestCenter,
   useSensor,
   useSensors,
@@ -41,10 +41,12 @@ import {
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { Vote } from "@prisma/client";
+import { IconTrophy } from "@tabler/icons-react";
 import dayjs from "dayjs";
+import { groupBy, orderBy, reduce } from "lodash";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 
 const Item = forwardRef<never, { name: string; order: number }>(
   ({ name, order, ...props }, ref) => {
@@ -81,6 +83,19 @@ function SortableItem({
     transition,
   };
 
+  const trophyIconColor = useMemo(() => {
+    if (order === 1) {
+      return "gold";
+    }
+    if (order === 2) {
+      return "gray";
+    }
+    if (order === 3) {
+      return "darksalmon";
+    }
+    return "gray";
+  }, [order]);
+
   return (
     <Box sx={{ marginBottom: 16, cursor: !disabled ? "grab" : "default" }}>
       <Card
@@ -97,7 +112,19 @@ function SortableItem({
         }}
       >
         <Group>
-          <Avatar color="orange">{order}</Avatar>
+          <Avatar
+            color={disabled ? "gray" : "orange"}
+            sx={{
+              display: order > 3 ? "none" : "block",
+            }}
+            styles={{
+              placeholder: {
+                color: disabled ? trophyIconColor : undefined,
+              },
+            }}
+          >
+            {disabled ? <IconTrophy /> : order}
+          </Avatar>
           {item.name}
         </Group>
       </Card>
@@ -185,6 +212,29 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
     });
   };
 
+  const { data: rankings } = useGetVoteRankings(router.query.voteId as string, {
+    enabled: vote?.open === false,
+  });
+
+  const rankedItems = useMemo(() => {
+    if (rankings && !vote?.open) {
+      const rankingsByItemId = groupBy(rankings, "itemId");
+      const reducedRankings = Object.entries(rankingsByItemId).map(
+        ([key, value]) => {
+          console.log("value", value);
+          return {
+            itemId: Number(key),
+            score: reduce(value, (acc, curr) => acc + curr.order, 0),
+          };
+        }
+      );
+      return orderBy(reducedRankings, ["score"], ["asc"])
+        .map((r) => items.find((i) => i.id === r.itemId))
+        .filter(Boolean) as ItemsFromApi;
+    }
+    return items;
+  }, [rankings, items, vote?.open]);
+
   return (
     <Page initialVotes={votes}>
       <Flex
@@ -215,7 +265,7 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
         {!vote && <Skeleton height={24} radius="xl" width={120} />}
         {vote && <Title order={2}>{vote?.name}</Title>}
         <Box>
-          {items.length === 0 && (
+          {rankedItems.length === 0 && (
             <Stack>
               <Card
                 sx={{
@@ -252,7 +302,7 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
               </Card>
             </Stack>
           )}
-          {items.length > 0 && (
+          {rankedItems.length > 0 && (
             <>
               <DndContext
                 sensors={sensors}
@@ -260,9 +310,9 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                 onDragEnd={({ over }) => {
                   setActiveId(null);
                   if (over) {
-                    console.log(over);
-                    console.log(activeItem);
-                    const overIndex = items.findIndex((i) => i.id === over.id);
+                    const overIndex = rankedItems.findIndex(
+                      (i) => i.id === over.id
+                    );
                     if (activeIndex !== overIndex) {
                       setItems((items) =>
                         arrayMove(items, activeIndex, overIndex)
@@ -282,7 +332,7 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                   items={items}
                   strategy={verticalListSortingStrategy}
                 >
-                  {items.map((item, idx) => (
+                  {rankedItems.map((item, idx) => (
                     <SortableItem
                       key={item.id}
                       item={item}
@@ -296,8 +346,9 @@ const V: NextPage<VotePageProps> = ({ votes }) => {
                     <Item
                       name={activeItem?.name || ""}
                       order={
-                        items.findIndex((item) => item.id === activeItem?.id) +
-                        1
+                        rankedItems.findIndex(
+                          (item) => item.id === activeItem?.id
+                        ) + 1
                       }
                     />
                   ) : null}
