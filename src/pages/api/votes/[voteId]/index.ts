@@ -20,7 +20,6 @@ export default async function handler(
 
   if (req.method === "GET") {
     const vote = await getVoteById(voteId as string);
-    console.log("vote", vote);
     return res.status(200).json({
       vote,
     });
